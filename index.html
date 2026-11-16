@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>💕 Рандомайзер свиданий</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            background: linear-gradient(-45deg, #ff9a9e, #fecfef, #a18cd1, #fbc2eb, #ff9a9e);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            overflow-x: hidden;
+            position: relative;
+            transition: background 0.8s ease;
+        }
+
+        /* Фоны по сезонам */
+        body.season-winter {
+            background: linear-gradient(-45deg, #a1c4fd, #c2e9fb, #e0eafc, #cfdef3, #a1c4fd);
+            background-size: 400% 400%;
+        }
+        body.season-spring {
+            background: linear-gradient(-45deg, #ffb6c1, #ffd1dc, #c8e6c9, #b2ebf2, #ffb6c1);
+            background-size: 400% 400%;
+        }
+        body.season-summer {
+            background: linear-gradient(-45deg, #ffd89b, #ffb347, #ff6b9d, #ffd89b, #ffb347);
+            background-size: 400% 400%;
+        }
+        body.season-autumn {
+            background: linear-gradient(-45deg, #ff9a56, #ffad60, #d4a373, #e07a5f, #ff9a56);
+            background-size: 400% 400%;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Плавающие пузыри на фоне */
+        .bubble {
+            position: fixed;
+            border-radius: 50%;
+            pointer-events: none;
+            animation: floatUp linear infinite;
+            z-index: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        @keyframes floatUp {
+            0% {
+                transform: translateY(100vh) scale(0.5);
+                opacity: 0;
+            }
+            10% { opacity: 0.6; }
+            90% { opacity: 0.6; }
+            100% {
+                transform: translateY(-100px) scale(1.2);
+                opacity: 0;
+            }
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.93);
+            backdrop-filter: blur(15px);
+            border-radius: 35px;
+            padding: 45px 40px;
+            max-width: 750px;
+            width: 100%;
+            box-shadow: 0 30px 70px rgba(180, 60, 120, 0.35),
+                        0 0 0 2px rgba(255, 255, 255, 0.5) inset;
+            text-align: center;
+            position: relative;
+            z-index: 10;
+            animation: floatIn 0.9s ease;
+            border: 3px solid rgba(255, 182, 220, 0.5);
+            transition: border-color 0.5s ease;
+        }
+
+        @keyframes floatIn {
+            from {
+                opacity: 0;
+                transform: translateY(40px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        h1 {
+            font-size: 2.3rem;
+            background: linear-gradient(135deg, #ff6b9d, #c86dd7, #667eea);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+            animation: pulseTitle 3s ease-in-out infinite;
+        }
+
+        @keyframes pulseTitle {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.03); }
+        }
+
+        .subtitle {
+            color: #b07cb8;
+            font-size: 1rem;
+            margin-bottom: 25px;
+            font-weight: 500;
+        }
+
+        /* ---- Переключатель сезонов ---- */
+        .season-switcher {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            background: rgba(255, 255, 255, 0.6);
+            padding: 8px;
+            border-radius: 50px;
+            box-shadow: 0 5px 20px rgba(200, 100, 180, 0.15);
+            border: 1px solid rgba(255, 182, 220, 0.4);
+        }
+
+        .season-btn {
+            border: none;
+            background: transparent;
+            padding: 10px 18px;
+            border-radius: 40px;
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: 700;
+            font-size: 0.95rem;
+            color: #a06ab0;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+        }
+
+        .season-btn:hover {
+            background: rgba(255, 182, 220, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .season-btn.active {
+            color: white;
+            box-shadow: 0 5px 15px rgba(150, 80, 160, 0.4);
+            transform: translateY(-2px) scale(1.05);
+        }
+
+        .season-btn.active[data-season="all"] {
+            background: linear-gradient(135deg, #ff6b9d, #c86dd7);
+        }
+        .season-btn.active[data-season="winter"] {
+            background: linear-gradient(135deg, #7fb3f0, #a1c4fd);
+        }
+        .season-btn.active[data-season="spring"] {
+            background: linear-gradient(135deg, #ff9ec4, #a8e6cf);
+        }
+        .season-btn.active[data-season="summer"] {
+            background: linear-gradient(135deg, #ffb347, #ff6b9d);
+        }
+        .season-btn.active[data-season="autumn"] {
+            background: linear-gradient(135deg, #e07a5f, #d4a373);
+        }
+
+        .season-emoji {
+            font-size: 1.15rem;
+        }
+
+        /* ---- Карточка ---- */
+        .card {
+            background: linear-gradient(135deg, #fff5f9 0%, #ffe0ef 50%, #e8d5ff 100%);
+            border-radius: 25px;
+            padding: 45px 30px;
+            min-height: 200px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 30px;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.5s ease;
+            border: 2px dashed rgba(255, 150, 200, 0.5);
+            box-shadow: 0 10px 30px rgba(200, 100, 180, 0.15) inset;
+        }
+
+        .card.season-winter {
+            background: linear-gradient(135deg, #e8f4fd 0%, #d4eaff 50%, #c2e9fb 100%);
+            border-color: rgba(150, 200, 255, 0.6);
+        }
+        .card.season-spring {
+            background: linear-gradient(135deg, #fff5f9 0%, #e8f5e9 50%, #ffd1dc 100%);
+            border-color: rgba(255, 180, 210, 0.6);
+        }
+        .card.season-summer {
+            background: linear-gradient(135deg, #fff8e1 0%, #ffe0b2 50%, #ffccbc 100%);
+            border-color: rgba(255, 180, 100, 0.6);
+        }
+        .card.season-autumn {
+            background: linear-gradient(135deg, #fbe9e7 0%, #ffccbc 50%, #ffe0b2 100%);
+            border-color: rgba(230, 130, 80, 0.6);
+        }
+
+        .card:hover {
+            transform: scale(1.02);
+            box-shadow: 0 15px 40px rgba(200, 100, 180, 0.25) inset;
+        }
+
+        .card::before {
+            content: '💕';
+            position: absolute;
+            top: -15px;
+            right: -15px;
+            font-size: 90px;
+            opacity: 0.12;
+            transform: rotate(15deg);
+            animation: spin 20s linear infinite;
+            transition: content 0.5s;
+        }
+
+        .card.season-winter::before { content: '❄️'; }
+        .card.season-spring::before { content: '🌸'; }
+        .card.season-summer::before { content: '☀️'; }
+        .card.season-autumn::before { content: '🍂'; }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .idea-emoji {
+            font-size: 3.5rem;
+            margin-bottom: 15px;
+            animation: bounce 2s infinite;
+            filter: drop-shadow(0 5px 10px rgba(255, 100, 180, 0.3));
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0) rotate(-5deg); }
+            50% { transform: translateY(-12px) rotate(5deg); }
+        }
+
+        .idea-text {
+            font-size: 1.35rem;
+            color: #5a3a6b;
+            font-weight: 600;
+            line-height: 1.5;
+            transition: opacity 0.3s ease;
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .category {
+            display: inline-block;
+            background: linear-gradient(135deg, #ffb6e1, #c9a5ff);
+            color: white;
+            padding: 6px 18px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            margin-top: 18px;
+            box-shadow: 0 4px 12px rgba(200, 100, 200, 0.3);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        button {
+            border: none;
+            padding: 16px 32px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: inherit;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-roll {
+            background: linear-gradient(135deg, #ff6b9d, #c86dd7);
+            color: white;
+            flex: 1;
+            min-width: 220px;
+            box-shadow: 0 10px 30px rgba(255, 100, 160, 0.45);
+        }
+
+        .btn-roll:hover {
+            transform: translateY(-4px) scale(1.03);
+            box-shadow: 0 15px 40px rgba(255, 100, 160, 0.65);
+        }
+
+        .btn-roll:active {
+            transform: translateY(0) scale(0.98);
+        }
+
+        .btn-roll:disabled {
+            opacity: 0.6;
+            cursor: wait;
+        }
+
+        .btn-reset {
+            background: white;
+            color: #c86dd7;
+            border: 2px solid #e0a5f0;
+            box-shadow: 0 5px 15px rgba(200, 100, 200, 0.2);
+        }
+
+        .btn-reset:hover {
+            background: #f8e5ff;
+            transform: translateY(-4px) scale(1.03);
+            border-color: #c86dd7;
+        }
+
+        .counter {
+            margin-top: 22px;
+            color: #b07cb8;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        /* Летящие сердечки */
+        .heart {
+            position: fixed;
+            font-size: 24px;
+            pointer-events: none;
+            z-index: 100;
+            animation: heartFly 1.8s ease-out forwards;
+            filter: drop-shadow(0 2px 5px rgba(255, 100, 180, 0.5));
+        }
+
+        @keyframes heartFly {
+            0% {
+                transform: translate(-50%, -50%) scale(0.5) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translate(-50%, -50%) translate(var(--tx), var(--ty)) scale(1.5) rotate(var(--rot));
+                opacity: 0;
+            }
+        }
+
+        @media (max-width: 500px) {
+            h1 { font-size: 1.6rem; }
+            .idea-text { font-size: 1.1rem; }
+            .container { padding: 28px 18px; border-radius: 25px; }
+            .card { padding: 35px 18px; }
+            button { font-size: 0.95rem; padding: 13px 20px; }
+            .btn-roll { min-width: 160px; }
+            .season-btn { padding: 8px 12px; font-size: 0.8rem; }
+            .season-btn .season-label { display: none; }
+            .season-btn .season-emoji { font-size: 1.3rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>💖 Идеи для свиданий</h1>
+        <p class="subtitle">Выберите сезон или оставьте «Все сезоны» ✨</p>
+
+        <div class="season-switcher" id="seasonSwitcher">
+            <button class="season-btn active" data-season="all">
+                <span class="season-emoji">🌈</span><span class="season-label">Все</span>
+            </button>
+            <button class="season-btn" data-season="winter">
+                <span class="season-emoji">❄️</span><span class="season-label">Зима</span>
+            </button>
+            <button class="season-btn" data-season="spring">
+                <span class="season-emoji">🌸</span><span class="season-label">Весна</span>
+            </button>
+            <button class="season-btn" data-season="summer">
+                <span class="season-emoji">☀️</span><span class="season-label">Лето</span>
+            </button>
+            <button class="season-btn" data-season="autumn">
+                <span class="season-emoji">🍂</span><span class="season-label">Осень</span>
+            </button>
+        </div>
+
+        <div class="card" id="card">
+            <div class="idea-emoji" id="emoji">💘</div>
+            <div class="idea-text" id="ideaText">Нажмите кнопку — и получите идею!</div>
+            <div class="category" id="category">Готовы?</div>
+        </div>
+
+        <div class="button-group">
+            <button class="btn-roll" id="rollBtn">✨ Выбрать свидание</button>
+            <button class="btn-reset" id="resetBtn">🔄 Сбросить</button>
+        </div>
+
+        <div class="counter" id="counter">Использовано идей: 0</div>
+    </div>
+
+    <script>
+        // ============ БАЗА ИДЕЙ (С СЕЗОНАМИ) ============
+        // season: "any" — подходит в любое время года
+        const dateIdeas = [
+            // ============ УНИВЕРСАЛЬНЫЕ ============
+            { text: "Устроить кулинарный поединок — готовим одно блюдо и сравниваем", emoji: "👨‍🍳", category: "Еда", season: "any" },
+            { text: "Пойти на рынок и купить продукты для совместного ужина", emoji: "🛒", category: "Еда", season: "any" },
+            { text: "Найти уютную кофейню и провести там весь вечер за разговорами", emoji: "☕", category: "Еда", season: "any" },
+            { text: "Съездить в другой город специально ради местного ресторана", emoji: "🚗", category: "Еда", season: "any" },
+            { text: "Посетить дегустацию вин или сыров", emoji: "🍷", category: "Еда", season: "any" },
+            { text: "Приготовить вместе пиццу с нуля — тесто, соус, всё своё", emoji: "🍕", category: "Еда", season: "any" },
+            { text: "Пойти в ресторан, где вы ещё никогда не были, и заказать блюдо наобум", emoji: "🎲", category: "Еда", season: "any" },
+            { text: "Купить набор для фондю и устроить романтический вечер", emoji: "🫕", category: "Еда", season: "any" },
+            { text: "Устроить вечер дегустации шоколада или мороженого", emoji: "🍫", category: "Еда", season: "any" },
+            { text: "Сходить на фуд-корт и попробовать еду разных кухонь мира", emoji: "🌮", category: "Еда", season: "any" },
+            { text: "Устроить ужин по принципу «каждый готовит сюрприз для другого»", emoji: "🎁", category: "Еда", season: "any" },
+            { text: "Пойти в суши-бар и набрать всего, чего захочется", emoji: "🍣", category: "Еда", season: "any" },
+            { text: "Устроить вечер бургеров — собрать идеальный бургер вместе", emoji: "🍔", category: "Еда", season: "any" },
+            { text: "Сходить на ярмарку еды или городской фестиваль уличной еды", emoji: "🌭", category: "Еда", season: "any" },
+            { text: "Устроить домашний кинотеатр с попкорном и пледом", emoji: "🎬", category: "Кино", season: "any" },
+            { text: "Пойти в кино на самый поздний сеанс", emoji: "🌙", category: "Кино", season: "any" },
+            { text: "Устроить марафон вашего любимого сериала с доставкой еды", emoji: "📺", category: "Кино", season: "any" },
+            { text: "Пойти на квиз или викторину в баре", emoji: "🧠", category: "Кино", season: "any" },
+            { text: "Посетить театр или стендап-шоу", emoji: "🎭", category: "Кино", season: "any" },
+            { text: "Сходить на концерт любимого исполнителя", emoji: "🎵", category: "Кино", season: "any" },
+            { text: "Устроить вечер караоке — дома или в караоке-баре", emoji: "🎤", category: "Кино", season: "any" },
+            { text: "Пойти на выставку или в музей, где вы ещё не были", emoji: "🖼️", category: "Кино", season: "any" },
+            { text: "Посетить планетарный комплекс и посмотреть на звёзды", emoji: "🪐", category: "Кино", season: "any" },
+            { text: "Устроить ночь настольных игр с вкусняшками", emoji: "🎲", category: "Кино", season: "any" },
+            { text: "Пойти в боулинг и устроить соревнование", emoji: "🎳", category: "Кино", season: "any" },
+            { text: "Сходить в бильярд и сыграть несколько партий", emoji: "🎱", category: "Кино", season: "any" },
+            { text: "Посетить квест-комнату или эскейп-рум", emoji: "🔐", category: "Кино", season: "any" },
+            { text: "Пойти в VR-клуб и попробовать виртуальную реальность", emoji: "🕶️", category: "Кино", season: "any" },
+            { text: "Устроить вечер «правда или действие»", emoji: "🎯", category: "Кино", season: "any" },
+            { text: "Посмотреть вместе новый сериал и обсудить каждую серию", emoji: "🍿", category: "Кино", season: "any" },
+            { text: "Сходить на уличный фестиваль или городской праздник", emoji: "🎉", category: "Кино", season: "any" },
+            { text: "Нарисовать портреты друг друга (неважно, что не умеете!)", emoji: "🎨", category: "Творчество", season: "any" },
+            { text: "Собрать вместе большой пазл под музыку", emoji: "🧩", category: "Творчество", season: "any" },
+            { text: "Устроить фотосессию в стиле «как в журнале»", emoji: "📷", category: "Творчество", season: "any" },
+            { text: "Написать друг другу письмо и прочитать через год", emoji: "💌", category: "Творчество", season: "any" },
+            { text: "Сделать вместе коллаж желаний на год вперёд", emoji: "✂️", category: "Творчество", season: "any" },
+            { text: "Пойти на урок танцев — сальса, вальс или хип-хоп", emoji: "💃", category: "Творчество", season: "any" },
+            { text: "Устроить домашний концерт — петь и играть на чём угодно", emoji: "🎸", category: "Творчество", season: "any" },
+            { text: "Сделать друг другу браслеты дружбы или фенечки", emoji: "🧵", category: "Творчество", season: "any" },
+            { text: "Устроить вечер рисования по номерам", emoji: "🖌️", category: "Творчество", season: "any" },
+            { text: "Слепить что-то из солёного теста или пластилина", emoji: "🗿", category: "Творчество", season: "any" },
+            { text: "Сделать вместе мыло или бомбочки для ванны", emoji: "🛁", category: "Творчество", season: "any" },
+            { text: "Поиграть в шарады или «Крокодила»", emoji: "🎭", category: "Творчество", season: "any" },
+            { text: "Сделать друг другу смешные причёски", emoji: "💇", category: "Творчество", season: "any" },
+            { text: "Пойти на городскую экскурсию и узнать что-то новое о месте, где живёте", emoji: "🏛️", category: "Город", season: "any" },
+            { text: "Посетить книжный магазин и выбрать друг другу книгу", emoji: "📚", category: "Город", season: "any" },
+            { text: "Сходить на блошиный рынок или в антикварный магазин", emoji: "🕰️", category: "Город", season: "any" },
+            { text: "Пойти в зоопарк или океанариум", emoji: "🐠", category: "Город", season: "any" },
+            { text: "Устроить шопинг-день и выбрать друг другу образ", emoji: "🛍️", category: "Город", season: "any" },
+            { text: "Посетить картинную галерею и обсудить картины", emoji: "🖌️", category: "Город", season: "any" },
+            { text: "Сходить на лекцию или интересную встречу", emoji: "🎓", category: "Город", season: "any" },
+            { text: "Погулять по историческому центру и сделать фото на память", emoji: "🏰", category: "Город", season: "any" },
+            { text: "Посетить выставку современного искусства", emoji: "🎭", category: "Город", season: "any" },
+            { text: "Сходить в библиотеку и выбрать книги друг другу", emoji: "📖", category: "Город", season: "any" },
+            { text: "Пойти в планетарий и посмотреть на звёзды", emoji: "🌠", category: "Город", season: "any" },
+            { text: "Посетить музей, в котором вы ещё не были", emoji: "🏛️", category: "Город", season: "any" },
+            { text: "Устроить прогулку по городу с фотоаппаратом", emoji: "📸", category: "Город", season: "any" },
+            { text: "Сходить в торговый центр и пройти квест «найди самый странный товар»", emoji: "🛒", category: "Город", season: "any" },
+            { text: "Устроить вечер спа-ритуалов дома — маски, музыка, свечи", emoji: "🕯️", category: "Дома", season: "any" },
+            { text: "Приготовить вместе завтрак в постель", emoji: "🥞", category: "Дома", season: "any" },
+            { text: "Устроить марафон любимых фильмов с тематической едой", emoji: "🍿", category: "Дома", season: "any" },
+            { text: "Построить крепость из одеял и провести там весь вечер", emoji: "🏰", category: "Дома", season: "any" },
+            { text: "Устроить вечер настольных игр с горячим шоколадом", emoji: "🍫", category: "Дома", season: "any" },
+            { text: "Сделать друг другу массаж под спокойную музыку", emoji: "💆", category: "Дома", season: "any" },
+            { text: "Приготовить вместе что-то сложное по новому рецепту", emoji: "📖", category: "Дома", season: "any" },
+            { text: "Устроить домашний квест с записками и сюрпризами", emoji: "🔍", category: "Дома", season: "any" },
+            { text: "Заказать еду из ресторана и устроить ужин при свечах", emoji: "🕯️", category: "Дома", season: "any" },
+            { text: "Посмотреть старые фотографии и рассказать истории из детства", emoji: "📸", category: "Дома", season: "any" },
+            { text: "Устроить вечер пижамной вечеринки с вкусняшками", emoji: "🩱", category: "Дома", season: "any" },
+            { text: "Сделать вместе домашний лимонад или коктейли", emoji: "🍹", category: "Дома", season: "any" },
+            { text: "Поиграть в видеоигры вместе", emoji: "🎮", category: "Дома", season: "any" },
+            { text: "Устроить вечер «всё наоборот» — ужин на полу, фильм на проекторе", emoji: "🔄", category: "Дома", season: "any" },
+            { text: "Приготовить вместе десерт — торт, печенье или тирамису", emoji: "🍰", category: "Дома", season: "any" },
+            { text: "Устроить вечер воспоминаний — пересмотреть старые видео", emoji: "🎞️", category: "Дома", season: "any" },
+            { text: "Устроить свидание-сюрприз: один ведёт, другой не знает куда", emoji: "🎁", category: "Необычное", season: "any" },
+            { text: "Пойти на свидание вслепую... с друг другом! Встретиться в кафе как незнакомцы", emoji: "🙈", category: "Необычное", season: "any" },
+            { text: "Устроить свидание на крыше с видом на город", emoji: "🏙️", category: "Необычное", season: "any" },
+            { text: "Провести день без телефонов — только вы и реальность", emoji: "📵", category: "Необычное", season: "any" },
+            { text: "Поменяться ролями: он планирует «девичник», она — «мужской вечер»", emoji: "🔄", category: "Необычное", season: "any" },
+            { text: "Устроить свидание в стиле другой эпохи — одеться и вести себя соответственно", emoji: "🎩", category: "Необычное", season: "any" },
+            { text: "Устроить свидание-путешествие: сесть на случайный автобус и выйти на незнакомой остановке", emoji: "🚌", category: "Необычное", season: "any" },
+            { text: "Сделать татуировки хной друг другу", emoji: "🌿", category: "Необычное", season: "any" },
+            { text: "Устроить свидание с бюджетом 500 рублей — кто круче проведёт время", emoji: "💰", category: "Необычное", season: "any" },
+            { text: "Устроить свидание в темноте — завязать глаза и угадывать еду на вкус", emoji: "🙈", category: "Необычное", season: "any" },
+            { text: "Написать друг другу список из 10 вопросов и честно ответить", emoji: "💬", category: "Необычное", season: "any" },
+            { text: "Устроить свидание «как в кино» — воссоздать сцену из любимого фильма", emoji: "🎬", category: "Необычное", season: "any" },
+            { text: "Пойти на свидание в книжный магазин и выбрать друг другу книгу-сюрприз", emoji: "📚", category: "Необычное", season: "any" },
+            { text: "Устроить вечер «дискотека 2000-х» с нарядами и музыкой", emoji: "🪩", category: "Необычное", season: "any" },
+            { text: "Провести свидание в стиле «первое свидание» — вести себя как незнакомцы", emoji: "💘", category: "Необычное", season: "any" },
+            { text: "Устроить свидание-фотоохоту: найти 10 объектов из списка", emoji: "🔎", category: "Необычное", season: "any" },
+
+            // ============ ЗИМА ============
+            { text: "Покататься на коньках на катке под открытым небом", emoji: "⛸️", category: "Зима", season: "winter" },
+            { text: "Скатиться с ледяной горки и устроить снежную фотосессию", emoji: "🛷", category: "Зима", season: "winter" },
+            { text: "Устроить вечер с глинтвейном и просмотром новогодних фильмов", emoji: "🎄", category: "Зима", season: "winter" },
+            { text: "Пойти на городскую ёлку или новогоднюю ярмарку", emoji: "🎠", category: "Зима", season: "winter" },
+            { text: "Слепить снеговика и устроить снежную фотосессию", emoji: "⛄", category: "Зима", season: "winter" },
+            { text: "Поиграть в снежки и устроить снежную битву", emoji: "❄️", category: "Зима", season: "winter" },
+            { text: "Сходить в баню или сауну и расслабиться", emoji: "🧖", category: "Зима", season: "winter" },
+            { text: "Устроить вечер с какао и уютным пледом у окна", emoji: "☕", category: "Зима", season: "winter" },
+            { text: "Покататься на лыжах или сноуборде", emoji: "⛷️", category: "Зима", season: "winter" },
+            { text: "Устроить зимнюю фотосессию в парке", emoji: "📸", category: "Зима", season: "winter" },
+            { text: "Пойти на рождественскую ярмарку и попробовать горячие угощения", emoji: "🎪", category: "Зима", season: "winter" },
+            { text: "Устроить вечер настольных игр под звуки зимней музыки", emoji: "🎲", category: "Зима", season: "winter" },
+            { text: "Посмотреть вместе зимние Олимпийские игры или спортивные соревнования", emoji: "🏅", category: "Зима", season: "winter" },
+            { text: "Сделать кормушку для птиц и повесить её в парке", emoji: "🐦", category: "Зима", season: "winter" },
+            { text: "Устроить вечер с fondue и зимними разговорами", emoji: "🫕", category: "Зима", season: "winter" },
+            { text: "Пойти в кино на новогоднюю премьеру", emoji: "🎬", category: "Зима", season: "winter" },
+
+            // ============ ВЕСНА ============
+            { text: "Пойти в парк и покататься на качелях", emoji: "🌸", category: "Весна", season: "spring" },
+            { text: "Устроить фотоохоту на первые весенние цветы", emoji: "🌷", category: "Весна", season: "spring" },
+            { text: "Погулять под первым весенним дождём с одним зонтом", emoji: "☔", category: "Весна", season: "spring" },
+            { text: "Пойти в ботанический сад и посмотреть на цветение", emoji: "🌺", category: "Весна", season: "spring" },
+            { text: "Устроить пикник в парке с корзинкой вкусностей", emoji: "🧺", category: "Весна", season: "spring" },
+            { text: "Покататься на велосипедах по набережной", emoji: "🚴", category: "Весна", season: "spring" },
+            { text: "Сходить на ярмарку или городской фестиваль", emoji: "🎪", category: "Весна", season: "spring" },
+            { text: "Устроить прогулку по новому району города без карты", emoji: "🗺️", category: "Весна", season: "spring" },
+            { text: "Покормить уток или белок в парке", emoji: "🦆", category: "Весна", season: "spring" },
+            { text: "Пойти в лес за первоцветами и устроить фотосессию", emoji: "📸", category: "Весна", season: "spring" },
+            { text: "Устроить велопрогулку до ближайшего озера", emoji: "🚲", category: "Весна", season: "spring" },
+            { text: "Пойти на пикник и запустить воздушного змея", emoji: "🪁", category: "Весна", season: "spring" },
+            { text: "Устроить прогулку по парку и собрать букет из весенних цветов", emoji: "💐", category: "Весна", season: "spring" },
+            { text: "Покататься на лодке или катамаране в парке", emoji: "🛶", category: "Весна", season: "spring" },
+            { text: "Сходить на выставку цветов или весеннюю ярмарку", emoji: "🌼", category: "Весна", season: "spring" },
+            { text: "Устроить вечер на балконе с чаем и весенним настроением", emoji: "🍵", category: "Весна", season: "spring" },
+
+            // ============ ЛЕТО ============
+            { text: "Поехать на пляж и устроить водные бои", emoji: "🏖️", category: "Лето", season: "summer" },
+            { text: "Устроить ночной пикник под звёздами", emoji: "🌙", category: "Лето", season: "summer" },
+            { text: "Встретить рассвет на берегу водоёма", emoji: "🌄", category: "Лето", season: "summer" },
+            { text: "Покататься на лодке или катамаране", emoji: "🛶", category: "Лето", season: "summer" },
+            { text: "Устроить пикник в парке с корзинкой вкусностей", emoji: "🧺", category: "Лето", season: "summer" },
+            { text: "Пойти в парк аттракционов и покататься на всём!", emoji: "🎢", category: "Лето", season: "summer" },
+            { text: "Съездить на природу и устроить шашлыки", emoji: "🍢", category: "Лето", season: "summer" },
+            { text: "Посмотреть фильм в летнем кинотеатре под открытым небом", emoji: "🌌", category: "Лето", season: "summer" },
+            { text: "Покататься на самокатах или роликах по набережной", emoji: "🛴", category: "Лето", season: "summer" },
+            { text: "Устроить велопрогулку по городу", emoji: "🚴", category: "Лето", season: "summer" },
+            { text: "Пойти на озеро и покормить уток", emoji: "🦆", category: "Лето", season: "summer" },
+            { text: "Устроить фотосессию на закате", emoji: "📸", category: "Лето", season: "summer" },
+            { text: "Пойти в поход выходного дня с палаткой", emoji: "🏕️", category: "Лето", season: "summer" },
+            { text: "Устроить вечер на крыше с видом на город", emoji: "🏙️", category: "Лето", season: "summer" },
+            { text: "Сходить на пляж и построить замок из песка", emoji: "🏰", category: "Лето", season: "summer" },
+            { text: "Покататься на лошадях", emoji: "🐴", category: "Лето", season: "summer" },
+            { text: "Устроить вечер с мороженым и прогулкой по парку", emoji: "🍦", category: "Лето", season: "summer" },
+            { text: "Пойти на городской пляж и устроить заплыв", emoji: "🏊", category: "Лето", season: "summer" },
+
+            // ============ ОСЕНЬ ============
+            { text: "Собрать осенние листья и сделать гербарий", emoji: "🍁", category: "Осень", season: "autumn" },
+            { text: "Съездить за город и устроить фотосессию в осеннем лесу", emoji: "🍂", category: "Осень", season: "autumn" },
+            { text: "Устроить вечер с тыквенным супом и уютными фильмами", emoji: "🎃", category: "Осень", season: "autumn" },
+            { text: "Пойти в парк и покормить белок", emoji: "🐿️", category: "Осень", season: "autumn" },
+            { text: "Устроить прогулку под дождём с одним зонтом", emoji: "☔", category: "Осень", season: "autumn" },
+            { text: "Сходить на осеннюю ярмарку и купить что-то уютное", emoji: "🎪", category: "Осень", season: "autumn" },
+            { text: "Устроить вечер с какао и настольными играми", emoji: "☕", category: "Осень", season: "autumn" },
+            { text: "Пойти в лес за грибами или ягодами", emoji: "🍄", category: "Осень", season: "autumn" },
+            { text: "Устроить фотосессию в парке с осенними листьями", emoji: "📸", category: "Осень", season: "autumn" },
+            { text: "Приготовить вместе что-то уютное — суп, пирог или глинтвейн", emoji: "🥧", category: "Осень", season: "autumn" },
+            { text: "Пойти в кино на осеннюю премьеру", emoji: "🎬", category: "Осень", season: "autumn" },
+            { text: "Устроить вечер с пледом и хорошей книгой вдвоём", emoji: "📖", category: "Осень", season: "autumn" },
+            { text: "Погулять по историческому центру и посмотреть на осенние улицы", emoji: "🏰", category: "Осень", season: "autumn" },
+            { text: "Сделать вместе осенний венок или поделку", emoji: "🍁", category: "Осень", season: "autumn" },
+            { text: "Пойти на выставку или в музей в дождливый день", emoji: "🖼️", category: "Осень", season: "autumn" },
+            { text: "Устроить вечер с горячим шоколадом и разговорами", emoji: "🍫", category: "Осень", season: "autumn" }
+        ];
+
+        // ============ ЛОГИКА ============
+        let usedIdeas = [];
+        let isRolling = false;
+        let currentSeason = 'all';
+
+        const emojiEl = document.getElementById('emoji');
+        const ideaTextEl = document.getElementById('ideaText');
+        const categoryEl = document.getElementById('category');
+        const rollBtn = document.getElementById('rollBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const counterEl = document.getElementById('counter');
+        const cardEl = document.getElementById('card');
+        const bodyEl = document.body;
+
+        // ---- Пузыри ----
+        function createBubbles() {
+            const bubbleEmojis = ['💗', '💖', '💕', '💘', '💝', '🌸', '✨', '❄️', '☀️', '🍂'];
+            for (let i = 0; i < 18; i++) {
+                const bubble = document.createElement('div');
+                bubble.className = 'bubble';
+                const size = 30 + Math.random() * 80;
+                bubble.style.width = size + 'px';
+                bubble.style.height = size + 'px';
+                bubble.style.left = Math.random() * 100 + '%';
+                bubble.style.animationDuration = (12 + Math.random() * 18) + 's';
+                bubble.style.animationDelay = Math.random() * 15 + 's';
+                bubble.textContent = bubbleEmojis[Math.floor(Math.random() * bubbleEmojis.length)];
+                bubble.style.fontSize = (size * 0.45) + 'px';
+                document.body.appendChild(bubble);
+            }
+        }
+
+        // ---- Сердечки ----
+        function spawnHearts(x, y) {
+            const heartEmojis = ['💖', '💕', '💗', '💘', '💝', '❤️', '💓', '🌸'];
+            const count = 12 + Math.floor(Math.random() * 8);
+            for (let i = 0; i < count; i++) {
+                const heart = document.createElement('div');
+                heart.className = 'heart';
+                heart.textContent = heartEmojis[Math.floor(Math.random() * heartEmojis.length)];
+                heart.style.left = x + 'px';
+                heart.style.top = y + 'px';
+                heart.style.fontSize = (16 + Math.random() * 24) + 'px';
+                const angle = (Math.PI * 2 * i) / count + Math.random() * 0.5;
+                const distance = 80 + Math.random() * 150;
+                const tx = Math.cos(angle) * distance;
+                const ty = Math.sin(angle) * distance - 60;
+                heart.style.setProperty('--tx', tx + 'px');
+                heart.style.setProperty('--ty', ty + 'px');
+                heart.style.setProperty('--rot', (Math.random() * 720 - 360) + 'deg');
+                heart.style.animationDelay = (Math.random() * 0.15) + 's';
+                document.body.appendChild(heart);
+                setTimeout(() => heart.remove(), 2000);
+            }
+        }
+
+        // ---- Фильтр по сезону ----
+        function getFilteredIdeas() {
+            if (currentSeason === 'all') {
+                return dateIdeas;
+            }
+            return dateIdeas.filter(idea => idea.season === currentSeason || idea.season === 'any');
+        }
+
+        function getRandomIdea() {
+            const filtered = getFilteredIdeas();
+            const available = filtered.filter(idea => !usedIdeas.includes(idea.text));
+            if (available.length === 0) return null;
+            return available[Math.floor(Math.random() * available.length)];
+        }
+
+        // ---- Применить тему сезона ----
+        function applySeasonTheme(season) {
+            bodyEl.className = '';
+            cardEl.className = 'card';
+            if (season !== 'all') {
+                bodyEl.classList.add('season-' + season);
+                cardEl.classList.add('season-' + season);
+            }
+        }
+
+        // ---- Переключение сезона ----
+        function switchSeason(season, btn) {
+            if (isRolling) return;
+            currentSeason = season;
+
+            document.querySelectorAll('.season-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            applySeasonTheme(season);
+
+            // Сбрасываем прогресс при смене сезона
+            usedIdeas = [];
+            emojiEl.textContent = '💘';
+            ideaTextEl.textContent = 'Нажмите кнопку — и получите идею!';
+            categoryEl.textContent = 'Готовы?';
+            rollBtn.textContent = '✨ Выбрать свидание';
+            rollBtn.disabled = false;
+            updateCounter();
+
+            // Сердечки от кнопки
+            const rect = btn.getBoundingClientRect();
+            spawnHearts(rect.left + rect.width / 2, rect.top + rect.height / 2);
+        }
+
+        function updateCounter() {
+            const filtered = getFilteredIdeas();
+            const available = filtered.filter(idea => !usedIdeas.includes(idea.text));
+            const seasonNames = { all: 'все сезоны', winter: 'зима', spring: 'весна', summer: 'лето', autumn: 'осень' };
+            counterEl.textContent = `Сезон: ${seasonNames[currentSeason]} • Использовано: ${usedIdeas.length} из ${filtered.length}`;
+        }
+
+        // ---- Прокрутка ----
+        function rollDate(e) {
+            if (isRolling) return;
+            isRolling = true;
+            rollBtn.disabled = true;
+
+            const rect = rollBtn.getBoundingClientRect();
+            const x = e.clientX || (rect.left + rect.width / 2);
+            const y = e.clientY || (rect.top + rect.height / 2);
+            spawnHearts(x, y);
+
+            const idea = getRandomIdea();
+
+            if (!idea) {
+                const seasonNames = { all: 'все сезоны', winter: 'зиму', spring: 'весну', summer: 'лето', autumn: 'осень' };
+                ideaTextEl.textContent = `🎉 Вы перебрали все идеи на ${seasonNames[currentSeason]}! Нажмите «Сбросить» или смените сезон.`;
+                emojiEl.textContent = "🏆";
+                categoryEl.textContent = "Все идеи использованы!";
+                isRolling = false;
+                rollBtn.disabled = true;
+                return;
+            }
+
+            const filtered = getFilteredIdeas();
+            let shuffleCount = 0;
+            const maxShuffles = 14 + Math.floor(Math.random() * 8);
+
+            const shuffleInterval = setInterval(() => {
+                const randomIdea = filtered[Math.floor(Math.random() * filtered.length)];
+                emojiEl.textContent = randomIdea.emoji;
+                ideaTextEl.textContent = randomIdea.text;
+                categoryEl.textContent = randomIdea.category;
+                shuffleCount++;
+
+                if (shuffleCount >= maxShuffles) {
+                    clearInterval(shuffleInterval);
+                    emojiEl.textContent = idea.emoji;
+                    ideaTextEl.textContent = idea.text;
+                    categoryEl.textContent = idea.category;
+
+                    usedIdeas.push(idea.text);
+                    updateCounter();
+
+                    isRolling = false;
+                    rollBtn.disabled = false;
+
+                    const cardRect = ideaTextEl.getBoundingClientRect();
+                    spawnHearts(
+                        cardRect.left + cardRect.width / 2,
+                        cardRect.top + cardRect.height / 2
+                    );
+
+                    if (usedIdeas.length >= filtered.length) {
+                        rollBtn.textContent = '🏁 Все идеи использованы!';
+                    }
+                }
+            }, 60);
+        }
+
+        // ---- Сброс ----
+        function resetAll(e) {
+            if (isRolling) return;
+            usedIdeas = [];
+            emojiEl.textContent = '💘';
+            ideaTextEl.textContent = 'Нажмите кнопку — и получите идею!';
+            categoryEl.textContent = 'Готовы?';
+            rollBtn.textContent = '✨ Выбрать свидание';
+            rollBtn.disabled = false;
+            updateCounter();
+
+            const x = e.clientX || window.innerWidth / 2;
+            const y = e.clientY || window.innerHeight / 2;
+            spawnHearts(x, y);
+        }
+
+        // ---- Инициализация ----
+        document.querySelectorAll('.season-btn').forEach(btn => {
+            btn.addEventListener('click', () => switchSeason(btn.dataset.season, btn));
+        });
+        rollBtn.addEventListener('click', rollDate);
+        resetBtn.addEventListener('click', resetAll);
+        createBubbles();
+        updateCounter();
+    </script>
+</body>
+</html>
